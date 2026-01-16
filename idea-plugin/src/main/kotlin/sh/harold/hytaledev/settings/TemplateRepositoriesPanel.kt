@@ -1,6 +1,6 @@
 package sh.harold.hytaledev.settings
 
-import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -15,7 +15,7 @@ import com.intellij.ui.util.minimumSize
 import com.intellij.util.ui.JBUI
 import sh.harold.hytaledev.settings.HytaleDevSettingsState.TemplateRepositoryKind
 import sh.harold.hytaledev.settings.HytaleDevSettingsState.TemplateRepositoryState
-import sh.harold.hytaledev.templating.TemplateCache
+import sh.harold.hytaledev.templates.HytaleDevTemplateService
 import java.nio.file.Path
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
@@ -204,7 +204,7 @@ class TemplateRepositoriesPanel {
     private fun clearCache() {
         object : Task.Backgroundable(null, "Clear template cache", true) {
             override fun run(indicator: ProgressIndicator) {
-                TemplateCache(defaultTemplateCacheDir()).clear()
+                service<HytaleDevTemplateService>().clearCache()
             }
 
             override fun onSuccess() {
@@ -215,10 +215,6 @@ class TemplateRepositoriesPanel {
                 Messages.showErrorDialog(error.message ?: "Failed to clear cache.", "HytaleDev")
             }
         }.queue()
-    }
-
-    private fun defaultTemplateCacheDir(): Path {
-        return Path.of(PathManager.getSystemPath()).resolve("hytaledev").resolve("template-cache")
     }
 }
 
