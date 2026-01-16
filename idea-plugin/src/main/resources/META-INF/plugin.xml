@@ -16,5 +16,7 @@
                 id="sh.harold.hytaledev.settings"
                 displayName="HytaleDev"
                 instance="sh.harold.hytaledev.settings.HytaleDevSettingsConfigurable"/>
+        <configurationType implementation="sh.harold.hytaledev.run.HytaleServerRunConfigurationType"/>
+        <beforeRunTaskProvider implementation="sh.harold.hytaledev.run.HytaleBeforeRunTaskProvider"/>
     </extensions>
 </idea-plugin>
