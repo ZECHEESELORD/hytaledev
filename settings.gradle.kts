@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformRepositoriesExtension
+
 rootProject.name = "hytaledev"
 
 pluginManagement {
@@ -11,13 +13,13 @@ plugins {
     id("org.jetbrains.intellij.platform.settings") version "2.1.0"
 }
 
+val currentSettings = this
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
-        intellijPlatform {
-            defaultRepositories()
-        }
+        IntelliJPlatformRepositoriesExtension.Companion.register(currentSettings, this).defaultRepositories()
     }
 }
 
