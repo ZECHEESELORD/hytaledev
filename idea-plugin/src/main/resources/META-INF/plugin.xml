@@ -12,5 +12,9 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <newProjectWizard.generator implementation="sh.harold.hytaledev.wizard.HytaleNewProjectWizard"/>
+        <applicationConfigurable
+                id="sh.harold.hytaledev.settings"
+                displayName="HytaleDev"
+                instance="sh.harold.hytaledev.settings.HytaleDevSettingsConfigurable"/>
     </extensions>
 </idea-plugin>
