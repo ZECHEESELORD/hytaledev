@@ -4,8 +4,13 @@
     <vendor>Harold</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <description><![CDATA[
     Adds a Hytale project generator and related tooling.
     ]]></description>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <newProjectWizard.generator implementation="sh.harold.hytaledev.wizard.HytaleNewProjectWizard"/>
+    </extensions>
 </idea-plugin>
