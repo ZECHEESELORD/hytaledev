@@ -13,6 +13,7 @@ import sh.harold.hytaledev.wizard.steps.BuildSystemStep
 import sh.harold.hytaledev.wizard.steps.GroupSelectorStep
 import sh.harold.hytaledev.wizard.steps.JdkStep
 import sh.harold.hytaledev.wizard.steps.ManifestStep
+import sh.harold.hytaledev.wizard.steps.GenerateProjectStep
 import sh.harold.hytaledev.wizard.steps.RootStep
 import sh.harold.hytaledev.wizard.steps.ServerConfigStep
 import sh.harold.hytaledev.wizard.steps.SummaryCommentStep
@@ -38,5 +39,6 @@ class HytaleNewProjectWizard : GeneratorNewProjectWizard {
             .nextStep(::ManifestStep)
             .nextStep(::ServerConfigStep)
             .nextStep(::SummaryCommentStep)
+            .nextStep(::GenerateProjectStep)
     }
 }
