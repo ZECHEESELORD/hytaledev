@@ -1,0 +1,22 @@
+{
+  "Group": "YourGroup",
+  "Name": "YourPluginName",
+  "Version": "1.0.0",
+  "Website": "https://example.com/",
+  "Description": "Short human readable description of the plugin.",
+  "Authors": [
+    {
+      "Name": "Your Name",
+      "Email": "you@example.com",
+      "Url": "https://example.com/"
+    }
+  ],
+  "Main": "com.example.yourplugin.YourPluginMainClass",
+  "ServerVersion": "*",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "LoadBefore": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false,
+  "SubPlugins": []
+}

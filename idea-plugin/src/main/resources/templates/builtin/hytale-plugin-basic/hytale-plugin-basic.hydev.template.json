@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "id": "builtin:hytale-plugin-basic",
+  "label": "Basic",
+  "group": "Plugin",
+  "properties": [
+    {
+      "name": "groupId",
+      "type": "string",
+      "label": "Group ID",
+      "default": "com.example",
+      "remember": true
+    },
+    {
+      "name": "artifactId",
+      "type": "string",
+      "label": "Artifact ID",
+      "default": "hytale-plugin",
+      "remember": true
+    },
+    {
+      "name": "version",
+      "type": "string",
+      "label": "Version",
+      "default": "1.0.0",
+      "remember": true
+    },
+    {
+      "name": "mainClassFqn",
+      "type": "class_fqn",
+      "label": "Main class",
+      "default": "com.example.plugin.Main"
+    },
+    {
+      "name": "jdk",
+      "type": "jdk",
+      "label": "JDK",
+      "default": "21"
+    }
+  ],
+  "files": [
+    {
+      "templatePath": "gradlew",
+      "destinationPath": "gradlew",
+      "render": false
+    },
+    {
+      "templatePath": "gradlew.bat",
+      "destinationPath": "gradlew.bat",
+      "render": false
+    },
+    {
+      "templatePath": "gradle/wrapper/gradle-wrapper.properties",
+      "destinationPath": "gradle/wrapper/gradle-wrapper.properties"
+    },
+    {
+      "templatePath": "gradle/wrapper/gradle-wrapper.jar",
+      "destinationPath": "gradle/wrapper/gradle-wrapper.jar",
+      "render": false
+    },
+    {
+      "templatePath": "settings.gradle.kts.vm",
+      "destinationPath": "settings.gradle.kts",
+      "openInEditor": true,
+      "reformat": true
+    },
+    {
+      "templatePath": "build.gradle.kts.vm",
+      "destinationPath": "build.gradle.kts",
+      "openInEditor": true,
+      "reformat": true
+    },
+    {
+      "templatePath": "gradle.properties.vm",
+      "destinationPath": "gradle.properties",
+      "openInEditor": true
+    },
+    {
+      "templatePath": ".gitignore",
+      "destinationPath": ".gitignore"
+    },
+    {
+      "templatePath": "README.md.vm",
+      "destinationPath": "README.md",
+      "openInEditor": true
+    },
+    {
+      "templatePath": "src/main/kotlin/Main.kt.vm",
+      "destinationPath": "src/main/kotlin/$mainClassPackagePath/$mainClassName.kt",
+      "openInEditor": true,
+      "reformat": true
+    },
+    {
+      "templatePath": "src/main/resources/manifest.json",
+      "destinationPath": "src/main/resources/manifest.json",
+      "openInEditor": true
+    }
+  ],
+  "finalizers": [
+    "import_gradle_project",
+    "git_add_all",
+    "create_run_configuration",
+    "copy_plugin_to_server"
+  ]
+}

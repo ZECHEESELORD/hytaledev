@@ -1,0 +1,5 @@
+kotlin.code.style=official
+
+# Filled by HytaleDev (wizard)
+hytale.serverJar=$serverJar
+hytale.assetsPath=$assetsPath

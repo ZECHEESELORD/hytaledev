@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "id": "builtin:hytale-plugin-basic",
+      "descriptorPath": "templates/builtin/hytale-plugin-basic/hytale-plugin-basic.hydev.template.json"
+    }
+  ]
+}
