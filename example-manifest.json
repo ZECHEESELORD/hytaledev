@@ -1,0 +1,56 @@
+{
+  "Group": "YourGroup",
+  "Name": "YourPluginName",
+  "Version": "1.0.0",
+  "Website": "https://example.com/",
+  "Description": "Short human readable description of the plugin.",
+  "Authors": [
+    {
+      "Name": "Your Name",
+      "Email": "you@example.com",
+      "Url": "https://example.com/"
+    }
+  ],
+  "Main": "com.example.yourplugin.YourPluginMainClass",
+  "ServerVersion": "*",
+  "Dependencies": {
+    "Hytale:SomeDependency": "*"
+  },
+  "OptionalDependencies": {
+    "Hytale:SomeOptionalDependency": "*"
+  },
+  "LoadBefore": {
+    "Hytale:SomeOtherPlugin": "*"
+  },
+  "DisabledByDefault": false,
+  "IncludesAssetPack": false,
+  "SubPlugins": [
+    {
+      "Name": "YourSubPluginName",
+      "Main": "com.example.yourplugin.YourSubPluginMainClass",
+      "Version": "1.0.0",
+      "Description": "Optional sub-plugin description.",
+      "Website": "https://example.com/",
+      "Authors": [
+        {
+          "Name": "Your Name",
+          "Email": "you@example.com",
+          "Url": "https://example.com/"
+        }
+      ],
+      "ServerVersion": "*",
+      "Dependencies": {
+        "Hytale:SomeDependency": "*"
+      },
+      "OptionalDependencies": {
+        "Hytale:SomeOptionalDependency": "*"
+      },
+      "LoadBefore": {
+        "Hytale:SomeOtherPlugin": "*"
+      },
+      "DisabledByDefault": false,
+      "IncludesAssetPack": false
+    }
+  ]
+}
+
