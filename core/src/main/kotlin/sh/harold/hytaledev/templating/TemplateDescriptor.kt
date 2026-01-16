@@ -17,6 +17,7 @@ data class TemplateDescriptor(
 data class TemplateFile(
     val templatePath: String,
     val destinationPath: String,
+    val render: Boolean = true,
     val openInEditor: Boolean = false,
     val reformat: Boolean = false,
     val condition: String? = null,
