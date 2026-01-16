@@ -1,0 +1,11 @@
+<idea-plugin>
+    <id>sh.harold.hytaledev</id>
+    <name>HytaleDev</name>
+    <vendor>Harold</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <description><![CDATA[
+    Adds a Hytale project generator and related tooling.
+    ]]></description>
+</idea-plugin>
