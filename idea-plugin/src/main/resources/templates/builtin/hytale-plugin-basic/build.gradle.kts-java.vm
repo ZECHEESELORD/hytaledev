@@ -1,0 +1,26 @@
+plugins {
+    java
+}
+
+group = "$groupId"
+version = "$version"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly(files(providers.gradleProperty("hytale.serverJar").get()))
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

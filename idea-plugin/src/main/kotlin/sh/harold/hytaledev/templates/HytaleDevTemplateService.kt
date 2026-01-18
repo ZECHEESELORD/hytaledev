@@ -61,8 +61,6 @@ class HytaleDevTemplateService {
         TemplateCache(cacheDir()).clear()
     }
 
-    fun cacheDir(): Path = cacheDir()
-
     private fun repositories(): List<TemplateRepository> {
         val settings = service<HytaleDevSettingsState>().state
         val cache = TemplateCache(cacheDir())
@@ -125,4 +123,3 @@ data class TemplateIndex(
     val templates: List<TemplateDescriptor>,
     val problems: List<String> = emptyList(),
 )
-

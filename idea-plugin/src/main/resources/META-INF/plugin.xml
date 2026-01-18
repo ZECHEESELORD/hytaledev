@@ -5,6 +5,8 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
+    <depends>org.jetbrains.idea.maven</depends>
 
     <description><![CDATA[
     Adds a Hytale project generator and related tooling.

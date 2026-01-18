@@ -42,38 +42,59 @@
     {
       "templatePath": "gradlew",
       "destinationPath": "gradlew",
-      "render": false
+      "render": false,
+      "condition": "$isGradle"
     },
     {
       "templatePath": "gradlew.bat",
       "destinationPath": "gradlew.bat",
-      "render": false
+      "render": false,
+      "condition": "$isGradle"
     },
     {
       "templatePath": "gradle/wrapper/gradle-wrapper.properties",
-      "destinationPath": "gradle/wrapper/gradle-wrapper.properties"
+      "destinationPath": "gradle/wrapper/gradle-wrapper.properties",
+      "condition": "$isGradle"
     },
     {
       "templatePath": "gradle/wrapper/gradle-wrapper.jar",
       "destinationPath": "gradle/wrapper/gradle-wrapper.jar",
-      "render": false
+      "render": false,
+      "condition": "$isGradle"
     },
     {
       "templatePath": "settings.gradle.kts.vm",
       "destinationPath": "settings.gradle.kts",
       "openInEditor": true,
-      "reformat": true
+      "reformat": true,
+      "condition": "$isGradle"
     },
     {
       "templatePath": "build.gradle.kts.vm",
       "destinationPath": "build.gradle.kts",
       "openInEditor": true,
-      "reformat": true
+      "reformat": true,
+      "condition": "$isGradleKotlin"
+    },
+    {
+      "templatePath": "build.gradle.kts-java.vm",
+      "destinationPath": "build.gradle.kts",
+      "openInEditor": true,
+      "reformat": true,
+      "condition": "$isGradleJava"
     },
     {
       "templatePath": "gradle.properties.vm",
       "destinationPath": "gradle.properties",
-      "openInEditor": true
+      "openInEditor": true,
+      "condition": "$isGradle"
+    },
+    {
+      "templatePath": "pom.xml.vm",
+      "destinationPath": "pom.xml",
+      "openInEditor": true,
+      "reformat": true,
+      "condition": "$isMaven"
     },
     {
       "templatePath": ".gitignore",
@@ -88,7 +109,15 @@
       "templatePath": "src/main/kotlin/Main.kt.vm",
       "destinationPath": "src/main/kotlin/$mainClassPackagePath/$mainClassName.kt",
       "openInEditor": true,
-      "reformat": true
+      "reformat": true,
+      "condition": "$isKotlin"
+    },
+    {
+      "templatePath": "src/main/java/Main.java.vm",
+      "destinationPath": "src/main/java/$mainClassPackagePath/$mainClassName.java",
+      "openInEditor": true,
+      "reformat": true,
+      "condition": "$isJava"
     },
     {
       "templatePath": "src/main/resources/manifest.json",

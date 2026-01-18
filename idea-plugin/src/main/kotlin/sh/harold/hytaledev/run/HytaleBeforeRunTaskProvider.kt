@@ -70,8 +70,13 @@ class HytaleBeforeRunTaskProvider : BeforeRunTaskProvider<HytaleDeployBeforeRunT
 
     private fun validateServer(configuration: HytaleServerRunConfiguration) {
         val options = configuration.settings
-        val serverDir = Path.of(options.serverDir)
-        val assets = Path.of(options.assetsPath)
+        val serverDirValue = options.serverDir?.trim().orEmpty()
+        val assetsValue = options.assetsPath?.trim().orEmpty()
+        require(serverDirValue.isNotBlank()) { "Server directory is required" }
+        require(assetsValue.isNotBlank()) { "Assets.zip path is required" }
+
+        val serverDir = Path.of(serverDirValue)
+        val assets = Path.of(assetsValue)
 
         val result = ServerValidator().validate(serverDir, assets)
         if (result is sh.harold.hytaledev.server.ValidationResult.Error) {
@@ -80,16 +85,33 @@ class HytaleBeforeRunTaskProvider : BeforeRunTaskProvider<HytaleDeployBeforeRunT
     }
 
     private fun buildPluginJar(projectDir: Path, configuration: HytaleServerRunConfiguration) {
-        val tasks = configuration.settings.gradleTasks.trim().ifBlank { "build" }
-        val wrapper = if (SystemInfo.isWindows) "gradlew.bat" else "gradlew"
-        val wrapperPath = projectDir.resolve(wrapper)
-        require(wrapperPath.isRegularFile()) { "Missing Gradle wrapper: $wrapperPath" }
+        val gradleWrapper = projectDir.resolve(if (SystemInfo.isWindows) "gradlew.bat" else "gradlew")
+        val pomXml = projectDir.resolve("pom.xml")
+        val mavenWrapper = projectDir.resolve(if (SystemInfo.isWindows) "mvnw.cmd" else "mvnw")
 
-        val command = if (SystemInfo.isWindows) {
-            listOf("cmd.exe", "/c", wrapperPath.toString()) + tasks.split(' ').filter { it.isNotBlank() }
-        } else {
-            listOf(wrapperPath.toString()) + tasks.split(' ').filter { it.isNotBlank() }
+        val tasksRaw = configuration.settings.gradleTasks?.trim().orEmpty()
+
+        val (tool, defaultTasks, baseCommand) = when {
+            gradleWrapper.isRegularFile() -> {
+                val cmd = if (SystemInfo.isWindows) listOf("cmd.exe", "/c", gradleWrapper.toString()) else listOf(gradleWrapper.toString())
+                Triple("Gradle", "build", cmd)
+            }
+
+            pomXml.isRegularFile() -> {
+                val cmd = if (mavenWrapper.isRegularFile()) {
+                    if (SystemInfo.isWindows) listOf("cmd.exe", "/c", mavenWrapper.toString()) else listOf(mavenWrapper.toString())
+                } else {
+                    listOf("mvn")
+                }
+                Triple("Maven", "package", cmd)
+            }
+
+            else -> error("Unknown build system (no Gradle wrapper or pom.xml found)")
         }
+
+        val tasks = tasksRaw.ifBlank { defaultTasks }
+        val tokens = tasks.split(' ').filter { it.isNotBlank() }
+        val command = baseCommand + tokens
 
         val process = ProcessBuilder(command)
             .directory(projectDir.toFile())
@@ -107,20 +129,24 @@ class HytaleBeforeRunTaskProvider : BeforeRunTaskProvider<HytaleDeployBeforeRunT
 
         val exit = process.waitFor()
         if (exit != 0) {
-            logger.warn("Gradle build failed (exit $exit):\n$output")
-            error("Gradle build failed (exit $exit). See idea.log for details.")
+            logger.warn("$tool build failed (exit $exit):\n$output")
+            error("$tool build failed (exit $exit). See idea.log for details.")
         }
     }
 
     private fun copyPluginJar(projectDir: Path, configuration: HytaleServerRunConfiguration) {
         val options = configuration.settings
-        val relative = options.pluginJarRelativePath.trim()
+        val relative = options.pluginJarRelativePath?.trim().orEmpty()
         val jarPath = if (relative.isNotBlank()) projectDir.resolve(relative).normalize() else null
 
-        val resolvedJar = jarPath?.takeIf { it.isRegularFile() } ?: findLatestJar(projectDir.resolve("build/libs"))
-        require(resolvedJar != null) { "Could not find built plugin jar under: ${projectDir.resolve("build/libs")}" }
+        val candidateDirs = listOf(projectDir.resolve("build/libs"), projectDir.resolve("target"))
+        val resolvedJar = jarPath?.takeIf { it.isRegularFile() }
+            ?: candidateDirs.asSequence().mapNotNull(::findLatestJar).firstOrNull()
+        require(resolvedJar != null) { "Could not find built plugin jar under: ${candidateDirs.joinToString()}" }
 
-        val modsDir = Path.of(options.serverDir).resolve("mods").createDirectories()
+        val serverDir = options.serverDir?.trim().orEmpty()
+        require(serverDir.isNotBlank()) { "Server directory is required" }
+        val modsDir = Path.of(serverDir).resolve("mods").createDirectories()
         val destination = modsDir.resolve(resolvedJar.fileName.toString())
         Files.copy(resolvedJar, destination, StandardCopyOption.REPLACE_EXISTING)
     }

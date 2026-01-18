@@ -7,7 +7,6 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.Key
 
 class WizardState(propertyGraph: PropertyGraph) {
-    val projectKindProperty: GraphProperty<HytaleProjectKind> = propertyGraph.property(HytaleProjectKind.Plugin)
     val templateIdProperty: GraphProperty<String> = propertyGraph.property(DEFAULT_TEMPLATE_ID)
 
     val buildSystemProperty: GraphProperty<BuildSystem> = propertyGraph.property(BuildSystem.Gradle)
@@ -65,12 +64,6 @@ class WizardState(propertyGraph: PropertyGraph) {
             return step.data.getUserData(KEY) ?: error("WizardState is not initialized")
         }
     }
-}
-
-enum class HytaleProjectKind {
-    Plugin,
-    Mod,
-    Proxy,
 }
 
 enum class BuildSystem {

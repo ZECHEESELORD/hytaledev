@@ -9,6 +9,7 @@ dependencies {
     intellijPlatform {
         intellijIdeaCommunity("2024.3")
         bundledPlugin("com.intellij.java")
+        bundledPlugin("org.jetbrains.idea.maven")
         bundledPlugin("org.jetbrains.plugins.gradle")
         instrumentationTools()
     }

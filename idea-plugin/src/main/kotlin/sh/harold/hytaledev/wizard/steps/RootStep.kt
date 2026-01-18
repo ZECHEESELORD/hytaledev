@@ -1,7 +1,6 @@
 package sh.harold.hytaledev.wizard.steps
 
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
-import com.intellij.ide.wizard.NewProjectWizardBaseData
 import com.intellij.ide.wizard.NewProjectWizardStep
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -16,7 +15,7 @@ class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(pare
     private val state = WizardState.get(this)
 
     init {
-        val baseData = NewProjectWizardBaseData.getBaseData(this)
+        val projectName = context.projectName?.trim().orEmpty()
 
         val settings = service<HytaleDevSettingsState>().state
         if (state.serverDirProperty.get().isBlank()) {
@@ -30,38 +29,17 @@ class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(pare
             state.groupIdProperty.set("com.example")
         }
         if (state.artifactIdProperty.get().isBlank()) {
-            state.artifactIdProperty.set(normalizeArtifactId(baseData.name))
+            state.artifactIdProperty.set(normalizeArtifactId(projectName))
         }
 
         if (state.manifestNameProperty.get().isBlank()) {
-            state.manifestNameProperty.set(baseData.name)
+            state.manifestNameProperty.set(projectName)
         }
         if (state.manifestGroupProperty.get().isBlank()) {
             state.manifestGroupProperty.set(state.groupIdProperty.get())
         }
         if (state.manifestMainProperty.get().isBlank()) {
-            state.manifestMainProperty.set(suggestMainClassFqn(state.groupIdProperty.get(), baseData.name))
-        }
-
-        var lastProjectName = baseData.name
-        baseData.nameProperty.afterChange { newProjectName ->
-            val oldProjectName = lastProjectName
-            val oldSuggestedMain = suggestMainClassFqn(state.groupIdProperty.get(), oldProjectName)
-            val newSuggestedMain = suggestMainClassFqn(state.groupIdProperty.get(), newProjectName)
-
-            if (state.artifactIdProperty.get().isBlank() || state.artifactIdProperty.get() == normalizeArtifactId(oldProjectName)) {
-                state.artifactIdProperty.set(normalizeArtifactId(newProjectName))
-            }
-
-            if (state.manifestNameProperty.get().isBlank() || state.manifestNameProperty.get() == oldProjectName) {
-                state.manifestNameProperty.set(newProjectName)
-            }
-
-            if (state.manifestMainProperty.get().isBlank() || state.manifestMainProperty.get() == oldSuggestedMain) {
-                state.manifestMainProperty.set(newSuggestedMain)
-            }
-
-            lastProjectName = newProjectName
+            state.manifestMainProperty.set(suggestMainClassFqn(state.groupIdProperty.get(), projectName))
         }
 
         var lastGroupId = state.groupIdProperty.get()
@@ -72,9 +50,9 @@ class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(pare
                 state.manifestGroupProperty.set(newGroupId)
             }
 
-            val projectName = baseData.name
-            val oldSuggestedMain = suggestMainClassFqn(oldGroupId, projectName)
-            val newSuggestedMain = suggestMainClassFqn(newGroupId, projectName)
+            val effectiveProjectName = state.manifestNameProperty.get().ifBlank { projectName }
+            val oldSuggestedMain = suggestMainClassFqn(oldGroupId, effectiveProjectName)
+            val newSuggestedMain = suggestMainClassFqn(newGroupId, effectiveProjectName)
             if (state.manifestMainProperty.get().isBlank() || state.manifestMainProperty.get() == oldSuggestedMain) {
                 state.manifestMainProperty.set(newSuggestedMain)
             }

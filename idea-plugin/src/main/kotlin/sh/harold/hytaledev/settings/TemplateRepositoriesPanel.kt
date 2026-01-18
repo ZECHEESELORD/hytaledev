@@ -11,7 +11,6 @@ import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.util.minimumSize
 import com.intellij.util.ui.JBUI
 import sh.harold.hytaledev.settings.HytaleDevSettingsState.TemplateRepositoryKind
 import sh.harold.hytaledev.settings.HytaleDevSettingsState.TemplateRepositoryState
@@ -80,14 +79,17 @@ class TemplateRepositoriesPanel {
     }
 
     private fun addRepository() {
-        val kind = Messages.showChooseDialog(
+        val options = arrayOf("Remote ZIP", "Local Directory", "Archive ZIP")
+        val selectedIndex = Messages.showDialog(
             null,
             "Select a repository type to add:",
             "Add Template Repository",
-            arrayOf("Remote ZIP", "Local Directory", "Archive ZIP"),
-            "Remote ZIP",
+            options,
+            0,
             null,
-        ) ?: return
+        )
+        if (selectedIndex < 0) return
+        val kind = options[selectedIndex]
 
         val repository = when (kind) {
             "Remote ZIP" -> promptRemoteZip(null)

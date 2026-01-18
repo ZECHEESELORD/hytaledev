@@ -45,13 +45,13 @@ class ServerConfigStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardS
             row("Server directory:") {
                 cell(serverDirField)
                     .bindText(state.serverDirProperty)
-                    .validationOnApply { b, c -> if (c.text.trim().isBlank()) b.error("Required") else null }
+                    .validationOnApply { field -> if (field.text.trim().isBlank()) error("Required") else null }
             }
 
             row("Assets.zip:") {
                 cell(assetsField)
                     .bindText(state.assetsPathProperty)
-                    .validationOnApply { b, c -> if (c.text.trim().isBlank()) b.error("Required") else null }
+                    .validationOnApply { field -> if (field.text.trim().isBlank()) error("Required") else null }
             }
 
             row {

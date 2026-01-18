@@ -15,12 +15,14 @@ import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.execution.RunManager
+import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import sh.harold.hytaledev.manifest.HytaleManifest
 import sh.harold.hytaledev.manifest.ManifestWriter
+import sh.harold.hytaledev.model.BuildSystem
+import sh.harold.hytaledev.model.Language
 import sh.harold.hytaledev.model.WizardState
 import sh.harold.hytaledev.run.HytaleDeployBeforeRunTask
 import sh.harold.hytaledev.run.HytaleServerRunConfiguration
@@ -34,6 +36,7 @@ import kotlin.io.path.isRegularFile
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.idea.maven.project.MavenProjectsManager
 
 class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
     private val logger = Logger.getInstance(GenerateProjectStep::class.java)
@@ -60,7 +63,6 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
 
                 GenerationOutput(
                     generated = result,
-                    mainClassFqn = values.getValue("mainClassFqn").toString(),
                 )
             }
         }
@@ -80,8 +82,11 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
 
         StartupManager.getInstance(project).runAfterOpened {
             createRunConfiguration(project)
-            importGradleProject(project, projectDir)
-            openKeyFiles(project, projectDir, output.mainClassFqn)
+            when (state.buildSystemProperty.get()) {
+                BuildSystem.Gradle -> importGradleProject(project, projectDir)
+                BuildSystem.Maven -> importMavenProject(project, projectDir)
+            }
+            openKeyFiles(project, projectDir, output.generated)
         }
     }
 
@@ -92,7 +97,7 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
             ?: return
         val factory = type.configurationFactories.first()
 
-        val runManager = RunManager.getInstance(project)
+        val runManager = RunManagerEx.getInstanceEx(project)
         val settings = runManager.createConfiguration("Hytale Server (dev)", factory)
         val configuration = settings.configuration as? HytaleServerRunConfiguration ?: return
 
@@ -101,14 +106,24 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
 
         configuration.settings.serverDir = state.serverDirProperty.get().trim()
         configuration.settings.assetsPath = state.assetsPathProperty.get().trim()
-        configuration.settings.gradleTasks = "build"
-        configuration.settings.pluginJarRelativePath = "build/libs/$artifactId-$version.jar"
+
+        when (state.buildSystemProperty.get()) {
+            BuildSystem.Gradle -> {
+                configuration.settings.gradleTasks = "build"
+                configuration.settings.pluginJarRelativePath = "build/libs/$artifactId-$version.jar"
+            }
+
+            BuildSystem.Maven -> {
+                configuration.settings.gradleTasks = "package"
+                configuration.settings.pluginJarRelativePath = "target/$artifactId-$version.jar"
+            }
+        }
 
         val tasks = listOf(HytaleDeployBeforeRunTask())
 
         ApplicationManager.getApplication().runWriteAction {
             runManager.addConfiguration(settings)
-            runManager.setBeforeRunTasks(settings, tasks)
+            runManager.setBeforeRunTasks(configuration, tasks)
             runManager.selectedConfiguration = settings
         }
     }
@@ -132,6 +147,19 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
             )
         }.onFailure { e ->
             logger.warn("Failed to import Gradle project", e)
+        }
+    }
+
+    private fun importMavenProject(project: Project, projectDir: Path) {
+        val pomPath = projectDir.resolve("pom.xml")
+        val pom = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(pomPath) ?: return
+
+        runCatching {
+            val manager = MavenProjectsManager.getInstance(project)
+            manager.addManagedFilesOrUnignore(listOf(pom))
+            manager.forceUpdateProjects()
+        }.onFailure { e ->
+            logger.warn("Failed to import Maven project", e)
         }
     }
 
@@ -165,6 +193,14 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         val artifactId = state.artifactIdProperty.get().trim()
         val version = state.projectVersionProperty.get().trim()
 
+        val buildSystem = state.buildSystemProperty.get()
+        val language = state.languageProperty.get()
+
+        val isGradle = buildSystem == BuildSystem.Gradle
+        val isMaven = buildSystem == BuildSystem.Maven
+        val isKotlin = language == Language.Kotlin
+        val isJava = language == Language.Java
+
         val mainClassFqn = state.manifestMainProperty.get().trim()
         val mainClassPackage = mainClassFqn.substringBeforeLast('.')
         val mainClassName = mainClassFqn.substringAfterLast('.')
@@ -181,6 +217,18 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
             put("groupId", groupId)
             put("artifactId", artifactId)
             put("version", version)
+
+            put("buildSystem", buildSystem.name)
+            put("language", language.name)
+            put("isGradle", isGradle)
+            put("isMaven", isMaven)
+            put("isKotlin", isKotlin)
+            put("isJava", isJava)
+            put("isGradleKotlin", isGradle && isKotlin)
+            put("isGradleJava", isGradle && isJava)
+            put("isMavenKotlin", isMaven && isKotlin)
+            put("isMavenJava", isMaven && isJava)
+
             put("mainClassFqn", mainClassFqn)
             put("mainClassPackage", mainClassPackage)
             put("mainClassName", mainClassName)
@@ -291,15 +339,12 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         VfsUtil.markDirtyAndRefresh(false, true, true, root)
     }
 
-    private fun openKeyFiles(project: Project, projectDir: Path, mainClassFqn: String) {
-        val mainClassPackagePath = mainClassFqn.substringBeforeLast('.').replace('.', '/')
-        val mainClassName = mainClassFqn.substringAfterLast('.')
-
-        val paths = listOf(
-            projectDir.resolve("build.gradle.kts"),
-            projectDir.resolve("src/main/kotlin/$mainClassPackagePath/$mainClassName.kt"),
-            projectDir.resolve("src/main/resources/manifest.json"),
-        )
+    private fun openKeyFiles(project: Project, projectDir: Path, generated: sh.harold.hytaledev.templating.GenerationResult) {
+        val paths = generated.files
+            .asSequence()
+            .filter { it.openInEditor }
+            .map { projectDir.resolve(it.relativePath) }
+            .toList()
 
         val lfs = LocalFileSystem.getInstance()
         val files: List<VirtualFile> = paths.mapNotNull { lfs.findFileByNioFile(it) }
@@ -314,5 +359,4 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
 
 private data class GenerationOutput(
     val generated: sh.harold.hytaledev.templating.GenerationResult,
-    val mainClassFqn: String,
 )
