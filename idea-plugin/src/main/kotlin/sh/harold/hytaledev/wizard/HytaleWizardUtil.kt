@@ -9,7 +9,7 @@ internal fun normalizeArtifactId(projectName: String): String {
         .replace(Regex("[^a-z0-9]+"), "-")
         .trim('-')
 
-    return normalized.ifBlank { "hytale-plugin" }
+    return normalized.ifBlank { "untitled" }
 }
 
 internal fun normalizePackageSegment(projectName: String): String {
@@ -23,10 +23,28 @@ internal fun normalizePackageSegment(projectName: String): String {
     return if (result.firstOrNull()?.isDigit() == true) "plugin_$result" else result
 }
 
+internal fun normalizeMainClassName(projectName: String): String {
+    val tokens = projectName
+        .trim()
+        .replace(Regex("[^A-Za-z0-9]+"), " ")
+        .trim()
+        .split(Regex("\\s+"))
+        .filter { it.isNotBlank() }
+
+    val result = tokens
+        .joinToString(separator = "") { token ->
+            token.replaceFirstChar { ch -> ch.titlecase() }
+        }
+        .ifBlank { "Plugin" }
+
+    return if (result.firstOrNull()?.isDigit() == true) "Plugin$result" else result
+}
+
 internal fun suggestMainClassFqn(groupId: String, projectName: String): String {
     val packageSegment = normalizePackageSegment(projectName)
     val base = groupId.trim().ifBlank { "com.example" }
-    return "$base.$packageSegment.Main"
+    val className = normalizeMainClassName(projectName)
+    return "$base.$packageSegment.$className"
 }
 
 internal fun isValidJavaFqn(value: String): Boolean {

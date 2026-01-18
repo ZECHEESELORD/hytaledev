@@ -9,6 +9,7 @@ import com.intellij.ide.wizard.RootNewProjectWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.util.IconLoader
 import sh.harold.hytaledev.model.WizardState
+import sh.harold.hytaledev.wizard.steps.BuildSystemPropertiesStep
 import sh.harold.hytaledev.wizard.steps.BuildSystemStep
 import sh.harold.hytaledev.wizard.steps.ManifestStep
 import sh.harold.hytaledev.wizard.steps.GenerateProjectStep
@@ -19,7 +20,7 @@ import sh.harold.hytaledev.wizard.steps.SummaryCommentStep
 class HytaleNewProjectWizard : GeneratorNewProjectWizard {
     override val id: String = "sh.harold.hytaledev.generator"
     override val name: String = "Hytale"
-    override val icon = IconLoader.getIcon("/icons/hytale.svg", javaClass)
+    override val icon = IconLoader.getIcon("/icons/hytale.png", javaClass)
 
     override fun createStep(context: WizardContext): NewProjectWizardStep {
         val root = RootNewProjectWizardStep(context)
@@ -31,6 +32,7 @@ class HytaleNewProjectWizard : GeneratorNewProjectWizard {
             .nextStep(::RootStep)
             .nextStep(::BuildSystemStep)
             .nextStep(::ManifestStep)
+            .nextStep(::BuildSystemPropertiesStep)
             .nextStep(::ServerConfigStep)
             .nextStep(::SummaryCommentStep)
             .nextStep(::GenerateProjectStep)

@@ -276,9 +276,9 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         }
 
         return HytaleManifest(
-            group = state.manifestGroupProperty.get().trim(),
+            group = state.groupIdProperty.get().trim(),
             name = state.manifestNameProperty.get().trim(),
-            version = state.manifestVersionProperty.get().trim(),
+            version = state.projectVersionProperty.get().trim(),
             website = state.manifestWebsiteProperty.get().trim().takeIf { it.isNotBlank() },
             description = state.manifestDescriptionProperty.get().trim(),
             authors = authors,

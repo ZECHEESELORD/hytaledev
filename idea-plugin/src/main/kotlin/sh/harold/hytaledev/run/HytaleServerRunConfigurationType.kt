@@ -8,7 +8,7 @@ class HytaleServerRunConfigurationType : ConfigurationTypeBase(
     ID,
     "Hytale Server",
     "Runs a Hytale server and deploys the current plugin into its mods folder.",
-    IconLoader.getIcon("/icons/hytale.svg", HytaleServerRunConfigurationType::class.java),
+    IconLoader.getIcon("/icons/hytale.png", HytaleServerRunConfigurationType::class.java),
 ) {
     init {
         addFactory(HytaleServerRunConfigurationFactory(this))

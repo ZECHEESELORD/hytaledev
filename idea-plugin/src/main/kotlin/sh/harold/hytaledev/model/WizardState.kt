@@ -18,9 +18,7 @@ class WizardState(propertyGraph: PropertyGraph) {
 
     val jdkProperty: GraphProperty<Sdk?> = propertyGraph.property(null)
 
-    val manifestGroupProperty: GraphProperty<String> = propertyGraph.property("")
     val manifestNameProperty: GraphProperty<String> = propertyGraph.property("")
-    val manifestVersionProperty: GraphProperty<String> = propertyGraph.property(DEFAULT_VERSION)
     val manifestMainProperty: GraphProperty<String> = propertyGraph.property("")
     val manifestDescriptionProperty: GraphProperty<String> = propertyGraph.property("")
     val manifestWebsiteProperty: GraphProperty<String> = propertyGraph.property("")
@@ -55,7 +53,7 @@ class WizardState(propertyGraph: PropertyGraph) {
 
     companion object {
         const val DEFAULT_TEMPLATE_ID = "builtin:hytale-plugin-basic"
-        const val DEFAULT_VERSION = "1.0.0"
+        const val DEFAULT_VERSION = "1.0-SNAPSHOT"
         const val DEFAULT_SERVER_VERSION = "*"
 
         val KEY: Key<WizardState> = Key.create("sh.harold.hytaledev.wizard.state")
