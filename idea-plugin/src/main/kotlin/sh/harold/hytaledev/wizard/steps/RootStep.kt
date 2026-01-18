@@ -3,14 +3,9 @@ package sh.harold.hytaledev.wizard.steps
 import com.intellij.ide.wizard.NewProjectWizardBaseData
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
 import com.intellij.ide.wizard.NewProjectWizardStep
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.service
 import sh.harold.hytaledev.model.WizardState
-import sh.harold.hytaledev.settings.HytaleDevSettingsState
 import sh.harold.hytaledev.wizard.normalizeArtifactId
 import sh.harold.hytaledev.wizard.suggestMainClassFqn
-import java.nio.file.Path
-import kotlin.io.path.isRegularFile
 
 class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
     private val state = WizardState.get(this)
@@ -19,14 +14,6 @@ class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(pare
         val baseData = data.getUserData(NewProjectWizardBaseData.KEY)
         val initialProjectName = baseData?.name?.trim() ?: context.projectName?.trim().orEmpty()
         var lastProjectName = initialProjectName
-
-        val settings = service<HytaleDevSettingsState>().state
-        if (state.serverDirProperty.get().isBlank()) {
-            state.serverDirProperty.set(settings.lastServerDir.orEmpty())
-        }
-        if (state.assetsPathProperty.get().isBlank()) {
-            state.assetsPathProperty.set(settings.lastAssetsPath.orEmpty())
-        }
 
         if (state.groupIdProperty.get().isBlank()) {
             state.groupIdProperty.set("com.example")
@@ -108,23 +95,6 @@ class RootStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(pare
             }
 
             lastGroupId = newGroupId
-        }
-
-        state.serverDirProperty.afterChange { serverDir ->
-            if (serverDir.isBlank() || state.assetsPathProperty.get().isNotBlank()) return@afterChange
-
-            val dirPath = runCatching { Path.of(serverDir) }.getOrNull() ?: return@afterChange
-            val candidate = dirPath.resolve("Assets.zip")
-
-            ApplicationManager.getApplication().executeOnPooledThread {
-                if (candidate.isRegularFile()) {
-                    ApplicationManager.getApplication().invokeLater {
-                        if (state.assetsPathProperty.get().isBlank()) {
-                            state.assetsPathProperty.set(candidate.toString())
-                        }
-                    }
-                }
-            }
         }
     }
 }

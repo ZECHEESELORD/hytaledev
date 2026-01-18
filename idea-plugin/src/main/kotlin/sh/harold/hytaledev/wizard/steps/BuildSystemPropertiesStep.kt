@@ -71,15 +71,15 @@ class BuildSystemPropertiesStep(parent: NewProjectWizardStep) : AbstractNewProje
                 .align(Align.FILL)
                 .comment("Recommended: JDK 25 (JDK 21+ required)")
                 .validationOnApply {
-                    validateSdk(state.jdkProperty, sdkModel) ?: run {
-                        val sdk = state.jdkProperty.get() ?: return@run error("Select a JDK (25 recommended, 21+ required)")
-                        if (!JavaSdk.getInstance().isOfVersionOrHigher(sdk, JavaSdkVersion.JDK_21)) {
-                            error("HytaleServer.jar requires JDK 21+")
-                        } else {
-                            null
+                        validateSdk(state.jdkProperty, sdkModel) ?: run {
+                            val sdk = state.jdkProperty.get() ?: return@run error("Select a JDK (25 recommended, 21+ required)")
+                            if (!JavaSdk.getInstance().isOfVersionOrHigher(sdk, JavaSdkVersion.JDK_21)) {
+                                error("Hytale requires JDK 21+")
+                            } else {
+                                null
+                            }
                         }
                     }
-                }
                 .onApply { context.projectJdk = state.jdkProperty.get() }
         }
     }
@@ -173,4 +173,3 @@ class BuildSystemPropertiesStep(parent: NewProjectWizardStep) : AbstractNewProje
         private val VERSION_REGEX = Regex("""\b(\d+)(?:\.(\d+))?""")
     }
 }
-

@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly(files(providers.gradleProperty("hytale.serverJar").get()))
     testImplementation(kotlin("test"))
 }
 

@@ -15,8 +15,6 @@ import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.execution.RunManagerEx
-import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import sh.harold.hytaledev.manifest.HytaleManifest
@@ -24,15 +22,10 @@ import sh.harold.hytaledev.manifest.ManifestWriter
 import sh.harold.hytaledev.model.BuildSystem
 import sh.harold.hytaledev.model.Language
 import sh.harold.hytaledev.model.WizardState
-import sh.harold.hytaledev.run.HytaleDeployBeforeRunTask
-import sh.harold.hytaledev.run.HytaleServerRunConfiguration
-import sh.harold.hytaledev.run.HytaleServerRunConfigurationType
-import sh.harold.hytaledev.server.ServerValidator
 import sh.harold.hytaledev.templating.ProjectGenerator
 import sh.harold.hytaledev.templates.HytaleDevTemplateService
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.isRegularFile
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -70,7 +63,6 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         val output = runWithProgress(project, "Generate Hytale project") {
             try {
                 ensureProjectSdk(project)
-                validateServerInputs()
                 generation()
             } catch (e: Throwable) {
                 logger.warn("Project generation failed", e)
@@ -81,50 +73,11 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         refreshVfs(projectDir)
 
         StartupManager.getInstance(project).runAfterOpened {
-            createRunConfiguration(project)
             when (state.buildSystemProperty.get()) {
                 BuildSystem.Gradle -> importGradleProject(project, projectDir)
                 BuildSystem.Maven -> importMavenProject(project, projectDir)
             }
             openKeyFiles(project, projectDir, output.generated)
-        }
-    }
-
-    private fun createRunConfiguration(project: Project) {
-        val type = ConfigurationType.CONFIGURATION_TYPE_EP.extensionList
-            .filterIsInstance<HytaleServerRunConfigurationType>()
-            .singleOrNull()
-            ?: return
-        val factory = type.configurationFactories.first()
-
-        val runManager = RunManagerEx.getInstanceEx(project)
-        val settings = runManager.createConfiguration("Hytale Server (dev)", factory)
-        val configuration = settings.configuration as? HytaleServerRunConfiguration ?: return
-
-        val artifactId = state.artifactIdProperty.get().trim()
-        val version = state.projectVersionProperty.get().trim()
-
-        configuration.settings.serverDir = state.serverDirProperty.get().trim()
-        configuration.settings.assetsPath = state.assetsPathProperty.get().trim()
-
-        when (state.buildSystemProperty.get()) {
-            BuildSystem.Gradle -> {
-                configuration.settings.gradleTasks = "build"
-                configuration.settings.pluginJarRelativePath = "build/libs/$artifactId-$version.jar"
-            }
-
-            BuildSystem.Maven -> {
-                configuration.settings.gradleTasks = "package"
-                configuration.settings.pluginJarRelativePath = "target/$artifactId-$version.jar"
-            }
-        }
-
-        val tasks = listOf(HytaleDeployBeforeRunTask())
-
-        ApplicationManager.getApplication().runWriteAction {
-            runManager.addConfiguration(settings)
-            runManager.setBeforeRunTasks(configuration, tasks)
-            runManager.selectedConfiguration = settings
         }
     }
 
@@ -175,19 +128,6 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         }
     }
 
-    private fun validateServerInputs() {
-        val serverDir = state.serverDirProperty.get().trim().takeIf { it.isNotBlank() } ?: return
-        val assets = state.assetsPathProperty.get().trim().takeIf { it.isNotBlank() } ?: return
-
-        val serverPath = runCatching { Path.of(serverDir) }.getOrNull() ?: return
-        val assetsPath = runCatching { Path.of(assets) }.getOrNull() ?: return
-
-        val result = ServerValidator().validate(serverPath, assetsPath)
-        if (result is sh.harold.hytaledev.server.ValidationResult.Error) {
-            error("Server configuration is invalid:\n${result.message}")
-        }
-    }
-
     private fun buildTemplateValues(projectDir: Path): Map<String, Any?> {
         val groupId = state.groupIdProperty.get().trim()
         val artifactId = state.artifactIdProperty.get().trim()
@@ -205,13 +145,6 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         val mainClassPackage = mainClassFqn.substringBeforeLast('.')
         val mainClassName = mainClassFqn.substringAfterLast('.')
         val mainClassPackagePath = mainClassPackage.replace('.', '/')
-
-        val serverDir = state.serverDirProperty.get().trim()
-        val serverJar = runCatching { Path.of(serverDir).resolve("HytaleServer.jar") }.getOrNull()
-            ?.takeIf { it.isRegularFile() }
-            ?.toString()
-            ?.replace('\\', '/')
-            .orEmpty()
 
         return buildMap<String, Any?> {
             put("groupId", groupId)
@@ -234,8 +167,6 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
             put("mainClassName", mainClassName)
             put("mainClassPackagePath", mainClassPackagePath)
 
-            put("serverJar", serverJar)
-            put("assetsPath", state.assetsPathProperty.get().trim().replace('\\', '/'))
             put("projectDir", projectDir.toString().replace('\\', '/'))
         }
     }

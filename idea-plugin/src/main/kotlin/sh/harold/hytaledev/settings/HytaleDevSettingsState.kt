@@ -10,8 +10,6 @@ import com.intellij.openapi.components.Storage
 class HytaleDevSettingsState : PersistentStateComponent<HytaleDevSettingsState.SettingsState> {
     data class SettingsState(
         var version: Int = 2,
-        var lastServerDir: String? = null,
-        var lastAssetsPath: String? = null,
         var templateRepositories: MutableList<TemplateRepositoryState> = mutableListOf(),
     )
 

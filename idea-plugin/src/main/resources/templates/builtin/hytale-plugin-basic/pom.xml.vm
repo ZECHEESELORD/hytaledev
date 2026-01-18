@@ -10,8 +10,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <hytale.serverJar>$serverJar</hytale.serverJar>
-        <hytale.assetsPath>$assetsPath</hytale.assetsPath>
 #if($isKotlin)
         <kotlin.version>2.0.21</kotlin.version>
         <kotlin.compiler.jvmTarget>21</kotlin.compiler.jvmTarget>
@@ -19,15 +17,6 @@
     </properties>
 
     <dependencies>
-        <!-- Hytale APIs live in the server jar (provided by the local server installation). -->
-        <dependency>
-            <groupId>com.hypixel.hytale</groupId>
-            <artifactId>server</artifactId>
-            <version>0</version>
-            <scope>system</scope>
-            <systemPath>${hytale.serverJar}</systemPath>
-        </dependency>
-
 #if($isKotlin)
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

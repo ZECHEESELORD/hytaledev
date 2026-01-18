@@ -15,14 +15,14 @@
       "name": "artifactId",
       "type": "string",
       "label": "Artifact ID",
-      "default": "hytale-plugin",
+      "default": "untitled",
       "remember": true
     },
     {
       "name": "version",
       "type": "string",
       "label": "Version",
-      "default": "1.0.0",
+      "default": "1.0-SNAPSHOT",
       "remember": true
     },
     {
@@ -127,8 +127,6 @@
   ],
   "finalizers": [
     "import_gradle_project",
-    "git_add_all",
-    "create_run_configuration",
-    "copy_plugin_to_server"
+    "git_add_all"
   ]
 }

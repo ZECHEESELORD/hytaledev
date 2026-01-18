@@ -14,7 +14,6 @@ import sh.harold.hytaledev.wizard.steps.BuildSystemStep
 import sh.harold.hytaledev.wizard.steps.ManifestStep
 import sh.harold.hytaledev.wizard.steps.GenerateProjectStep
 import sh.harold.hytaledev.wizard.steps.RootStep
-import sh.harold.hytaledev.wizard.steps.ServerConfigStep
 import sh.harold.hytaledev.wizard.steps.SummaryCommentStep
 
 class HytaleNewProjectWizard : GeneratorNewProjectWizard {
@@ -33,7 +32,6 @@ class HytaleNewProjectWizard : GeneratorNewProjectWizard {
             .nextStep(::BuildSystemStep)
             .nextStep(::ManifestStep)
             .nextStep(::BuildSystemPropertiesStep)
-            .nextStep(::ServerConfigStep)
             .nextStep(::SummaryCommentStep)
             .nextStep(::GenerateProjectStep)
     }

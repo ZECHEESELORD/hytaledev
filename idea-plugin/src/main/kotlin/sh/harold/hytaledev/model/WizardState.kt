@@ -47,10 +47,6 @@ class WizardState(propertyGraph: PropertyGraph) {
     val subPluginOptionalDependenciesTextProperty: GraphProperty<String> = propertyGraph.property("")
     val subPluginLoadBeforeTextProperty: GraphProperty<String> = propertyGraph.property("")
 
-    val serverDirProperty: GraphProperty<String> = propertyGraph.property("")
-    val assetsPathProperty: GraphProperty<String> = propertyGraph.property("")
-    val serverValidationMessageProperty: GraphProperty<String> = propertyGraph.property("")
-
     companion object {
         const val DEFAULT_TEMPLATE_ID = "builtin:hytale-plugin-basic"
         const val DEFAULT_VERSION = "1.0-SNAPSHOT"

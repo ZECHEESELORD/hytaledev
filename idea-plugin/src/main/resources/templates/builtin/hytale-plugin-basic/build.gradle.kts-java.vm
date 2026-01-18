@@ -10,7 +10,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly(files(providers.gradleProperty("hytale.serverJar").get()))
     testImplementation(platform("org.junit:junit-bom:5.10.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
