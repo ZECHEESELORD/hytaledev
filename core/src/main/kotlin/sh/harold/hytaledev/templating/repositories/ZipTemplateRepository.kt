@@ -48,7 +48,7 @@ class ZipTemplateRepository(
                 appendLine("Duplicate template ids detected in: $zipPath")
                 duplicates.forEach { (id, items) ->
                     appendLine("  $id:")
-                    items.forEach { appendLine("    - ${it.basePath.ifBlank { \"<root>\" }}") }
+                    items.forEach { appendLine("    - ${it.basePath.ifBlank { "<root>" }}") }
                 }
             }
             error(message.trimEnd())

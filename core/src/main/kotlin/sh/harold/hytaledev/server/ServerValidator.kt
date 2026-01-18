@@ -53,7 +53,7 @@ sealed interface ValidationResult {
         val warnings: List<String> = emptyList(),
     ) : ValidationResult {
         override val message: String =
-            if (warnings.isEmpty()) "OK" else "OK (${warnings.joinToString(separator = \"; \")})"
+            if (warnings.isEmpty()) "OK" else "OK (${warnings.joinToString(separator = "; ")})"
     }
 
     data class Error(
