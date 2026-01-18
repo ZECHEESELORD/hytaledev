@@ -18,6 +18,8 @@ out/
 
 ### Misc ###
 TODO-INTERNAL.md
+PLAN.md
+plan.md
 docs/
 
 ### Eclipse ###
@@ -45,3 +47,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 /lib/
+/.intellijPlatform/
