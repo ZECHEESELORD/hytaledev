@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -133,6 +134,8 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
         val artifactId = state.artifactIdProperty.get().trim()
         val version = state.projectVersionProperty.get().trim()
 
+        val jdkFeatureVersion = state.jdkProperty.get()?.featureVersion() ?: 25
+
         val buildSystem = state.buildSystemProperty.get()
         val language = state.languageProperty.get()
 
@@ -166,6 +169,8 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
             put("mainClassPackage", mainClassPackage)
             put("mainClassName", mainClassName)
             put("mainClassPackagePath", mainClassPackagePath)
+
+            put("jdkFeatureVersion", jdkFeatureVersion)
 
             put("projectDir", projectDir.toString().replace('\\', '/'))
         }
@@ -291,3 +296,15 @@ class GenerateProjectStep(parent: NewProjectWizardStep) : AbstractNewProjectWiza
 private data class GenerationOutput(
     val generated: sh.harold.hytaledev.templating.GenerationResult,
 )
+
+private fun Sdk.featureVersion(): Int? {
+    val versionString = versionString ?: return null
+    val match = VERSION_REGEX.find(versionString) ?: return null
+
+    val first = match.groupValues[1].toIntOrNull() ?: return null
+    val second = match.groupValues.getOrNull(2)?.toIntOrNull()
+
+    return if (first == 1 && second != null) second else first
+}
+
+private val VERSION_REGEX = Regex("""\b(\d+)(?:\.(\d+))?""")

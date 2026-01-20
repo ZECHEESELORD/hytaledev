@@ -1,1 +1,9 @@
+pluginManagement {
+    repositories {
+        // Until the plugin is approved on the Gradle Plugin Portal, you can use `publishToMavenLocal` for local testing.
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = "$artifactId"

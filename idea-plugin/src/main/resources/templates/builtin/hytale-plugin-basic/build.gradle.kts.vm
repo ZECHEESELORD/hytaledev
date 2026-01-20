@@ -1,5 +1,14 @@
+import groovy.json.JsonSlurper
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
+
 plugins {
     kotlin("jvm") version "2.0.21"
+    id("sh.harold.hytale.run") version "0.1.1"
 }
 
 group = "$groupId"
@@ -9,12 +18,114 @@ repositories {
     mavenCentral()
 }
 
+fun isWsl(): Boolean {
+    return !System.getenv("WSL_DISTRO_NAME").isNullOrBlank() || !System.getenv("WSL_INTEROP").isNullOrBlank()
+}
+
+fun maybeConvertWindowsPathToWsl(path: String): String {
+    if (!isWsl()) return path
+
+    val normalized = path.replace('\\', '/')
+    val match = Regex("^([A-Za-z]):/(.*)$").find(normalized) ?: return path
+    val drive = match.groupValues[1].lowercase()
+    val rest = match.groupValues[2]
+    return "/mnt/$drive/$rest"
+}
+
+fun readServerJarFromResolveJsonOrNull(): String? {
+    val resolveJson = layout.buildDirectory.file("hytale/resolve.json").get().asFile
+    if (!resolveJson.isFile) return null
+
+    return runCatching {
+        val json = JsonSlurper().parse(resolveJson) as Map<*, *>
+        (json["serverJar"] as? String)?.trim()
+    }.getOrNull()
+}
+
+fun autoDetectInstallHomeOrNull(): File? {
+    val os = OperatingSystem.current()
+    val home = System.getProperty("user.home") ?: return null
+
+    val installHome = when {
+        os.isWindows -> System.getenv("APPDATA")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { File(it, "Hytale\\install\\release\\package\\game\\latest") }
+
+        os.isMacOsX -> File(home, "Library/Application Support/Hytale/install/release/package/game/latest")
+
+        os.isLinux -> {
+            val xdgDataHome = System.getenv("XDG_DATA_HOME")
+                ?.takeIf { it.isNotBlank() }
+                ?.let(::File)
+                ?: File(home, ".local/share")
+            File(xdgDataHome, "Hytale/install/release/package/game/latest")
+        }
+
+        else -> null
+    } ?: return null
+
+    return installHome.takeIf { it.isDirectory }
+}
+
+fun resolveInstallHomeOrNull(): File? {
+    val fromGradleProperty = providers.gradleProperty("hytaleHome").orNull
+    val fromEnv = System.getenv("HYTALE_HOME")
+
+    val raw = fromGradleProperty?.trim().takeIf { !it.isNullOrBlank() }
+        ?: fromEnv?.trim().takeIf { !it.isNullOrBlank() }
+        ?: return autoDetectInstallHomeOrNull()
+
+    val converted = maybeConvertWindowsPathToWsl(raw)
+    return File(converted).takeIf { it.isDirectory }
+}
+
+fun resolveServerJarOrNull(): File? {
+    val fromResolveJson = readServerJarFromResolveJsonOrNull()
+    if (!fromResolveJson.isNullOrBlank()) {
+        return File(fromResolveJson).takeIf { it.isFile }
+    }
+
+    val home = resolveInstallHomeOrNull() ?: return null
+    return File(home, "Server/HytaleServer.jar").takeIf { it.isFile }
+}
+
+val hytaleServerJar = resolveServerJarOrNull()
+if (hytaleServerJar == null) {
+    logger.lifecycle(
+        "Hytale server jar not found. " +
+            "Set `-PhytaleHome=/path/to/Hytale/.../game/latest` or `HYTALE_HOME`, then re-sync.",
+    )
+}
+
 dependencies {
+    if (hytaleServerJar != null) {
+        compileOnly(files(hytaleServerJar))
+    }
     testImplementation(kotlin("test"))
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain($jdkFeatureVersion)
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of($jdkFeatureVersion))
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(21)
+}
+
+hytaleRun {
+    javaToolchain.set($jdkFeatureVersion)
 }
 
 tasks.test {
